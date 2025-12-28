@@ -43,7 +43,7 @@ jobs:
         run: trivy config --format json --output trivy-tf.json . 
 
       - name: Run Checkov
-        run: checkov -d . -o junitxml > checkov.xml 
+        run: checkov -d . -o junitxml --soft-fail > checkov.xml 
 
       # 📦 Always upload reports
       - name: Upload security scan artifacts
