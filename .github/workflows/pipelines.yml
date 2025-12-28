@@ -36,6 +36,8 @@ jobs:
         working-directory: ${{ env.TF_DIR }}
         run: terraform init --var "subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
+      
+
       - name: Run Tfsec
         run: tfsec . --format junit --out tfsec.xml
 
@@ -44,3 +46,12 @@ jobs:
 
       - name: Run Checkov
         run: checkov -d . -o junitxml > checkov.xml
+
+      - name: Upload security scan artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-security-reports
+          path: |
+            tfsec.xml
+            trivy-tf.json
+            checkov.xml
