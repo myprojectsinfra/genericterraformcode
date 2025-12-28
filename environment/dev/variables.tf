@@ -1,3 +1,7 @@
+variable "subscription_id" {
+  description = "The subscription id"
+  type = string
+}
 variable "rgs" {
   description = "The Configuration details of the Resource Group"
   type = map(object({
