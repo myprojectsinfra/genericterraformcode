@@ -20,14 +20,15 @@ jobs:
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
+        
       - name: Azure Login using OIDC
-      uses: azure/login@v1
-      with:
-        client-id: ${{ env.client-id }}
-        tenant-id: ${{ env.tenant-id }}
-        subscription-id: ${{ env.subscription-id }}
+        uses: azure/login@v1
+        with:
+          client-id: ${{ env.client-id }}
+          tenant-id: ${{ env.tenant-id }}
+          subscription-id: ${{ env.subscription-id }}
 
-      # Runs a single command using the runners shell
+      
       - name: Terraform Init
         run: terraform init --var "subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
         working-directory: ${{ env.TF_DIR }}
