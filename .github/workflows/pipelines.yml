@@ -1,32 +1,57 @@
 name: "Ankit Kumar Generic Infra code"
+
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
-
+    branches: ["main"]
   workflow_dispatch:
+
 env:
   TF_DIR: environment/dev/
   client-id: ${{ secrets.AZURE_CLIENT_ID }}
   tenant-id: ${{ secrets.AZURE_TENANT_ID }}
   subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
 permissions:
   id-token: write
   contents: read
+
 jobs:
   build:
     runs-on: [self-hosted, Ankit-GenericInfra]
+
     steps:
-      - name: Run a one-line script
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Azure Login using OIDC
+        uses: azure/login@v1
+        with:
+          client-id: ${{ env.client-id }}
+          tenant-id: ${{ env.tenant-id }}
+          subscription-id: ${{ env.subscription-id }}
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+      - name: Terraform Init
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform init --var "subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+
+      - name: Run Tfsec
+        run: tfsec . --format junit --out tfsec.xml || true
+
+      - name: Run Trivy
+        run: trivy config --format json --output trivy-tf.json . || true
+
+      - name: Run Checkov
+        run: checkov -d . -o junitxml > checkov.xml || true
+
+      # 📦 Always upload reports
+      - name: Upload security scan artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-security-reports
+          path: |
+            tfsec.xml
+            trivy-tf.json
+            checkov.xml
