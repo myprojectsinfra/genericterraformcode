@@ -1,26 +1,30 @@
 name: "Ankit Kumar Generic Infra code"
+
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
-
+    branches: ["main"]
   workflow_dispatch:
+
 env:
   TF_DIR: environment/dev/
   client-id: ${{ secrets.AZURE_CLIENT_ID }}
   tenant-id: ${{ secrets.AZURE_TENANT_ID }}
   subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
 permissions:
   id-token: write
   contents: read
+
 jobs:
   build:
     runs-on: [self-hosted, Ankit-GenericInfra]
+
     steps:
-      - name: checkout repo
+      - name: Checkout repo
         uses: actions/checkout@v4
-        
+
       - name: Azure Login using OIDC
         uses: azure/login@v1
         with:
@@ -28,17 +32,15 @@ jobs:
           tenant-id: ${{ env.tenant-id }}
           subscription-id: ${{ env.subscription-id }}
 
-      
       - name: Terraform Init
-        run: terraform init --var "subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
         working-directory: ${{ env.TF_DIR }}
+        run: terraform init --var "subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
       - name: Run Tfsec
         run: tfsec . --format junit --out tfsec.xml
-        
+
       - name: Run Trivy
         run: trivy config --format json --output trivy-tf.json .
 
-        - name: Run Checkov
+      - name: Run Checkov
         run: checkov -d . -o junitxml > checkov.xml
-      
