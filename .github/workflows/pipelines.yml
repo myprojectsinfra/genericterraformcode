@@ -37,13 +37,13 @@ jobs:
         run: terraform init --var "subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
       - name: Run Tfsec
-        run: tfsec . --format junit --out tfsec.xml || true
+        run: tfsec . --format junit --out tfsec.xml 
 
       - name: Run Trivy
-        run: trivy config --format json --output trivy-tf.json . || true
+        run: trivy config --format json --output trivy-tf.json . 
 
       - name: Run Checkov
-        run: checkov -d . -o junitxml > checkov.xml || true
+        run: checkov -d . -o junitxml > checkov.xml 
 
       # 📦 Always upload reports
       - name: Upload security scan artifacts
