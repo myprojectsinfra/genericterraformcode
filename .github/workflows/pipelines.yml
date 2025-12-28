@@ -18,15 +18,26 @@ jobs:
   build:
     runs-on: [self-hosted, Ankit-GenericInfra]
     steps:
-      - name: Run a one-line script
+      - name: checkout repo
         uses: actions/checkout@v4
+      - name: Azure Login using OIDC
+      uses: azure/login@v1
+      with:
+        client-id: ${{ env.client-id }}
+        tenant-id: ${{ env.tenant-id }}
+        subscription-id: ${{ env.subscription-id }}
 
       # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Terraform Init
+        run: terraform init --var "subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+        working-directory: ${{ env.TF_DIR }}
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+      - name: Run Tfsec
+        run: tfsec . --format junit --out tfsec.xml
+        
+      - name: Run Trivy
+        run: trivy config --format json --output trivy-tf.json .
+
+        - name: Run Checkov
+        run: checkov -d . -o junitxml > checkov.xml
+      
